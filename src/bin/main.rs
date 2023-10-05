@@ -20,7 +20,7 @@ impl Optimizer for APlusB {
       fitness += 1.0 / f64::abs(pred[0] - expected);
     }
 
-    fitness / 20.0
+    fitness / 10.0
   }
 }
 

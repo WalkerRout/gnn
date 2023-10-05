@@ -4,6 +4,7 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub enum Output {
   Softmax,
+  //Sigmoid,
   None
 }
 
@@ -108,7 +109,14 @@ impl NN {
     }
 
     match output {
-      Output::Softmax => self.softmax(current_input),
+      Output::Softmax => {
+        assert!(self.architecture[self.architecture.len()-1] > 1);
+        self.softmax(current_input)
+      },
+      //Output::Sigmoid => {
+      //  assert!(self.architecture[self.architecture.len()-1] == 1);
+      //  self.sigmoid(current_input)
+      //},
       Output::None => current_input
     }
   }
