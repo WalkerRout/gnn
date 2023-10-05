@@ -16,3 +16,4 @@ opt-level = 1
 
 [dependencies]
 rand = "0.8.5"
+rayon = "1.8.0"

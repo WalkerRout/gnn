@@ -1,5 +1,6 @@
 
 use rand::prelude::*;
+use rayon::prelude::*;
 
 use crate::nn::NN;
 
@@ -13,7 +14,7 @@ pub trait Optimizer: Default {
   fn fitness(&mut self, nn: &mut NN) -> f64;
 }
 
-pub struct GNN<P: Optimizer> {
+pub struct GNN<P: Optimizer + Send + Sync> {
   architecture: Arc<Vec<usize>>, // population architecture
   /// Tandem vectors
   networks: Vec<NN>,
@@ -21,7 +22,7 @@ pub struct GNN<P: Optimizer> {
   population: Vec<P>
 }
 
-impl<P: Optimizer> GNN<P> {
+impl<P: Optimizer + Send + Sync> GNN<P> {
   pub fn new<A: AsRef<[usize]>>(population_count: usize, arch: A) -> Self {
     assert!(population_count >= 10, "Population must be greater than or equal to 10");
     assert!(population_count % 2 == 0, "Population must be an even number");
@@ -60,21 +61,24 @@ impl<P: Optimizer> GNN<P> {
     }
   }
 
+  // network, fitness, individual
   #[inline]
-  pub fn most_fit(&self) -> (&NN, f64) {
+  pub fn most_fit(&self) -> (&NN, f64, &P) {
     let indices_by_fitness = self.indices_by_fitness();
-    (&self.networks[indices_by_fitness[0]], self.fitnesses[indices_by_fitness[0]])
+    let most_fit = indices_by_fitness[0];
+    (&self.networks[most_fit], self.fitnesses[most_fit], &self.population[most_fit])
   }
 
+  // network, fitness, individual
   #[inline]
-  pub fn most_fit_mut(&mut self) -> (&mut NN, f64) {
+  pub fn most_fit_mut(&mut self) -> (&mut NN, f64, &mut P) {
     let indices_by_fitness = self.indices_by_fitness();
-    (&mut self.networks[indices_by_fitness[0]], self.fitnesses[indices_by_fitness[0]])
-  }
+    let most_fit = indices_by_fitness[0];
+    (&mut self.networks[most_fit], self.fitnesses[most_fit], &mut self.population[most_fit])  }
 
   #[inline]
   pub fn average_fitness(&self) -> f64 {
-    self.fitnesses.iter().sum::<f64>() / self.fitnesses.len() as f64
+    self.fitnesses.par_iter().sum::<f64>() / self.fitnesses.len() as f64
   }
 
   #[inline]
@@ -83,8 +87,8 @@ impl<P: Optimizer> GNN<P> {
     assert_eq!(self.fitnesses.len(), self.population.len());
 
     self.fitnesses = self.population
-      .iter_mut()
-      .zip(self.networks.iter_mut())
+      .par_iter_mut()
+      .zip(self.networks.par_iter_mut())
       .map(|(p, nn)| p.fitness(nn))
       .collect();
 
@@ -105,7 +109,6 @@ impl<P: Optimizer> GNN<P> {
   fn crossover(&mut self, elites: Vec<usize>) {
     // |A|AA|AA| -> |A|BB|AA|
     // |B|BB|BB|    |B|AA|BB|
-    let mut rng = rand::thread_rng();
     // same architecture for all, just select first one
     let weights_count = self.networks[0].weights.len();
     let biases_count = self.networks[0].biases.len();
@@ -113,7 +116,7 @@ impl<P: Optimizer> GNN<P> {
 
     // eventually add some random crap networks for variability
     let elites: Vec<(Vec<f64>, Vec<f64>)> = elites
-      .into_iter()
+      .into_par_iter()
       .map(|i| (
         self.networks[i].weights.clone(),
         self.networks[i].biases.clone()
@@ -122,9 +125,11 @@ impl<P: Optimizer> GNN<P> {
 
     // room for so many optimizations here...
     self.networks
-      .chunks_exact_mut(2)
+      .par_chunks_exact_mut(2)
       .skip(elites_count/2)
       .for_each(|nets| {
+        let mut rng = rand::thread_rng();
+        
         // select 2 random elites (.0 is weights, .1 is biases)
         let elite_a = elites.choose(&mut rng).expect("Error - elites empty..");
         let elite_b = elites.choose(&mut rng).expect("Error - elites empty..");
@@ -143,19 +148,19 @@ impl<P: Optimizer> GNN<P> {
         nn_a_weights.extend_from_slice(&elite_b.0[lower..upper]);
         nn_a_weights.extend_from_slice(&elite_a.0[upper..weights_count]);
 
-        // nn_a_biases
-        let lower = rng.gen_range(0..biases_count / 2);
-        let upper = rng.gen_range(biases_count / 2..biases_count);
-        nn_a_biases.extend_from_slice(&elite_a.1[0..lower]);
-        nn_a_biases.extend_from_slice(&elite_b.1[lower..upper]);
-        nn_a_biases.extend_from_slice(&elite_a.1[upper..biases_count]);
-
         // nn_b_weights
         let lower = rng.gen_range(0..weights_count / 2);
         let upper = rng.gen_range(weights_count / 2..weights_count);
         nn_b_weights.extend_from_slice(&elite_b.0[0..lower]);
         nn_b_weights.extend_from_slice(&elite_a.0[lower..upper]);
         nn_b_weights.extend_from_slice(&elite_b.0[upper..weights_count]);
+
+        // nn_a_biases
+        let lower = rng.gen_range(0..biases_count / 2);
+        let upper = rng.gen_range(biases_count / 2..biases_count);
+        nn_a_biases.extend_from_slice(&elite_a.1[0..lower]);
+        nn_a_biases.extend_from_slice(&elite_b.1[lower..upper]);
+        nn_a_biases.extend_from_slice(&elite_a.1[upper..biases_count]);
 
         // nn_b_biases
         let lower = rng.gen_range(0..biases_count / 2);
@@ -168,7 +173,7 @@ impl<P: Optimizer> GNN<P> {
         
         nets
           .iter_mut()
-          .zip(IntoIterator::into_iter(nn_genes))
+          .zip(nn_genes.into_iter())
           .for_each(|(nn, (weights_gene, biases_gene))| {
             nn.weights = weights_gene;
             nn.biases  = biases_gene;
@@ -191,13 +196,13 @@ impl<P: Optimizer> GNN<P> {
     let weights_mutation_rate = 0.12;
     let biases_mutation_rate  = 0.09;
 
-    let mut rng = rand::thread_rng();
-
     // select random networks in population to mutate
     self.networks
-      .iter_mut()
+      .par_iter_mut()
       .filter(|_| rand::random::<f64>() < mutation_rate)
       .for_each(|nn| {
+        let mut rng = rand::thread_rng();
+
         // select random weights to mutate
         nn.weights
           .iter_mut()
@@ -329,7 +334,7 @@ impl GNNBuilder {
     self
   }
 
-  pub fn build<P: Optimizer>(self) -> GNN<P> {
+  pub fn build<P: Optimizer + Send + Sync>(self) -> GNN<P> {
     GNN::new(self.population, self.architecture.expect("Error - must set architecture for GNN"))
   }
 }
