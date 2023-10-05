@@ -45,6 +45,7 @@ impl<P: Optimizer> GNN<P> {
     }
   }
 
+  #[inline]
   pub fn evolve_generation(&mut self) {
     self.fit();
     let genes = self.gene_pool();
@@ -52,17 +53,20 @@ impl<P: Optimizer> GNN<P> {
     self.mutate();
   }
 
+  #[inline]
   pub fn evolve_complete(&mut self, epochs: usize) {
     for _ in 0..epochs {
       self.evolve_generation();
     }
   }
 
+  #[inline]
   pub fn most_fit(&self) -> (&NN, f64) {
     let indices_by_fitness = self.indices_by_fitness();
     (&self.networks[indices_by_fitness[0]], self.fitnesses[indices_by_fitness[0]])
   }
 
+  #[inline]
   pub fn most_fit_mut(&mut self) -> (&mut NN, f64) {
     let indices_by_fitness = self.indices_by_fitness();
     (&mut self.networks[indices_by_fitness[0]], self.fitnesses[indices_by_fitness[0]])
@@ -73,6 +77,7 @@ impl<P: Optimizer> GNN<P> {
     self.fitnesses.iter().sum::<f64>() / self.fitnesses.len() as f64
   }
 
+  #[inline]
   fn fit(&mut self) -> f64 {
     assert_eq!(self.networks.len(), self.fitnesses.len());
     assert_eq!(self.fitnesses.len(), self.population.len());
@@ -86,6 +91,7 @@ impl<P: Optimizer> GNN<P> {
     self.average_fitness()
   }
 
+  #[inline]
   fn gene_pool(&self) -> Vec<usize> {
     let indices_by_fitness = self.indices_by_fitness();
     let elites_count = self.elites_count();
