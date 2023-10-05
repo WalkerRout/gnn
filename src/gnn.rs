@@ -125,9 +125,6 @@ impl<P: Optimizer> GNN<P> {
       .chunks_exact_mut(2)
       .skip(elites_count/2)
       .for_each(|nets| {
-        let mut nn_a = &mut nets[0];
-        let mut nn_b = &mut nets[1];
-        
         // select 2 random elites (.0 is weights, .1 is biases)
         let elite_a = elites.choose(&mut rng).expect("Error - elites empty..");
         let elite_b = elites.choose(&mut rng).expect("Error - elites empty..");
@@ -246,7 +243,7 @@ mod test_gnn {
   struct OneOptimizer;
 
   impl Optimizer for OneOptimizer {
-    fn fitness(&mut self, nn: &mut NN) -> f64 {
+    fn fitness(&mut self, _: &mut NN) -> f64 {
       1.0
     }
   }
@@ -273,7 +270,7 @@ mod test_gnn {
 
   #[test]
   fn test_gnn_gene_pool() {
-    let mut gnn: GNN<OneOptimizer> = GNN::new(1000, &[1, 6, 2]);
+    let gnn: GNN<OneOptimizer> = GNN::new(1000, &[1, 6, 2]);
     let genes = gnn.gene_pool();
 
     // 30% == 3/10
@@ -293,7 +290,7 @@ mod test_gnn {
   #[test]
   fn test_gnn_mutate() {
     let mut gnn: GNN<OneOptimizer> = GNN::new(10, &[1, 6, 2]);
-    let mut nets = gnn.networks.clone();
+    let nets = gnn.networks.clone();
     let mut diff = false;
 
     for i in 0..nets.len() {
@@ -345,7 +342,7 @@ mod test_gnnbuilder {
   struct OneOptimizer;
 
   impl Optimizer for OneOptimizer {
-    fn fitness(&mut self, nn: &mut NN) -> f64 {
+    fn fitness(&mut self, _: &mut NN) -> f64 {
       1.0
     }
   }

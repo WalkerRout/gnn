@@ -1,6 +1,4 @@
 
-use rand::prelude::*;
-
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -109,7 +107,6 @@ impl NN {
       current_input = neurons;
     }
 
-    let output_count = current_input.len();
     match output {
       Output::Softmax => self.softmax(current_input),
       Output::None => current_input
