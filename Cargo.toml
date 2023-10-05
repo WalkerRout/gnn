@@ -1,0 +1,18 @@
+[package]
+name = "gnn"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
+[lib]
+name = "gnn"
+path = "src/lib.rs"
+
+[profile.dev]
+opt-level = 1
+
+[dependencies]
+rand = "0.8.5"
