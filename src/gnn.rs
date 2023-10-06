@@ -14,7 +14,7 @@ pub trait Optimizer: Default {
   fn fitness(&mut self, nn: &mut NN) -> f64;
 }
 
-pub struct GNN<P: Optimizer + Send + Sync> {
+pub struct GNN<P: Optimizer> {
   architecture: Arc<Vec<usize>>, // population architecture
   /// Tandem vectors
   networks: Vec<NN>,
