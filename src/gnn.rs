@@ -86,11 +86,11 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     assert_eq!(self.networks.len(), self.fitnesses.len());
     assert_eq!(self.fitnesses.len(), self.population.len());
 
-    self.fitnesses = self.population
+    self.fitnesses
       .par_iter_mut()
       .zip(self.networks.par_iter_mut())
-      .map(|(p, nn)| p.fitness(nn))
-      .collect();
+      .zip(self.population.par_iter_mut())
+      .for_each(|((f, nn), p)| *f = p.fitness(nn));
 
     self.average_fitness()
   }
@@ -167,7 +167,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
         
         nets
           .iter_mut()
-          .zip(nn_genes.into_iter())
+          .zip(nn_genes)
           .for_each(|(nn, (weights_gene, biases_gene))| {
             nn.weights = weights_gene;
             nn.biases  = biases_gene;
@@ -177,7 +177,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     // copy over elites
     self.networks
       .iter_mut()
-      .zip(elites.into_iter())
+      .zip(elites)
       .take(elites_count)
       .for_each(|(nn, (weights_gene, biases_gene))| {
         nn.weights = weights_gene;
