@@ -147,10 +147,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
         nn_a_weights.extend_from_slice(&elite_a.0[0..lower]);
         nn_a_weights.extend_from_slice(&elite_b.0[lower..upper]);
         nn_a_weights.extend_from_slice(&elite_a.0[upper..weights_count]);
-
         // nn_b_weights
-        let lower = rng.gen_range(0..weights_count / 2);
-        let upper = rng.gen_range(weights_count / 2..weights_count);
         nn_b_weights.extend_from_slice(&elite_b.0[0..lower]);
         nn_b_weights.extend_from_slice(&elite_a.0[lower..upper]);
         nn_b_weights.extend_from_slice(&elite_b.0[upper..weights_count]);
@@ -161,10 +158,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
         nn_a_biases.extend_from_slice(&elite_a.1[0..lower]);
         nn_a_biases.extend_from_slice(&elite_b.1[lower..upper]);
         nn_a_biases.extend_from_slice(&elite_a.1[upper..biases_count]);
-
         // nn_b_biases
-        let lower = rng.gen_range(0..biases_count / 2);
-        let upper = rng.gen_range(biases_count / 2..biases_count);
         nn_b_biases.extend_from_slice(&elite_b.1[0..lower]);
         nn_b_biases.extend_from_slice(&elite_a.1[lower..upper]);
         nn_b_biases.extend_from_slice(&elite_b.1[upper..biases_count]);
