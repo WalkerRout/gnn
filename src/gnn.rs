@@ -219,9 +219,10 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     
     // safe; indices always fall within size of self.fitnesses
     unsafe {
-      indices.sort_by(|&a, &b| { 
-        self.fitnesses.get_unchecked(b)
-          .partial_cmp(self.fitnesses.get_unchecked(a)).unwrap() 
+      indices.sort_by(|&a, &b| {
+        let a = self.fitnesses.get_unchecked(a);
+        let b = self.fitnesses.get_unchecked(b);
+        b.partial_cmp(a).unwrap()
       });
     }
 
