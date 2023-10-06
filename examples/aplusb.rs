@@ -31,20 +31,16 @@ impl Optimizer for APlusB {
 fn main() {
   let mut gnn = GNNBuilder::new()
     .population(1500)
-    .architecture([2, 4, 4, 1])
+    .architecture([2, 2, 1])
     .build::<APlusB>();
 
-  gnn.evolve_complete(2000);
+  gnn.evolve_complete(3000);
 
-  let a = 1.15;
-  let b = 1.15;
+  let a = 22.0;
+  let b = 23.0;
   let avg = gnn.average_fitness();
-  let (most_fit, fitness, _) = gnn.most_fit_mut();
 
   println!("final avg fitness: {}", avg);
   println!("most fit guess of fitness {}: {a} + {b} = {:?}",
-    fitness, most_fit.forward([a, b], Output::None));
-
-  //println!("Most fit weights: {:?}", most_fit.weights);
-  //println!("Most fit biases: {:?}", most_fit.biases);
+    gnn.fitness(), gnn.forward([a, b], Output::None));
 }

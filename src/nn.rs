@@ -72,6 +72,13 @@ impl NN {
     }
   }
 
+  pub fn new_prefit(arch: Arc<Vec<usize>>, weights: Vec<f64>, biases: Vec<f64>) -> Self {
+    let mut nn = Self::new(arch);
+    nn.weights = weights;
+    nn.biases = biases;
+    nn
+  }
+
   pub fn forward<A: AsRef<[f64]>>(&mut self, input: A, output: Output) -> Vec<f64> {
     let mut current_input = input.as_ref().to_owned();
 

@@ -2,7 +2,7 @@
 use rand::prelude::*;
 use rayon::prelude::*;
 
-use crate::nn::NN;
+use crate::nn::{NN, Output};
 
 use std::iter;
 use std::sync::Arc;
@@ -24,8 +24,9 @@ pub struct GNN<P: Optimizer> {
 
 impl<P: Optimizer + Send + Sync> GNN<P> {
   pub fn new<A: AsRef<[usize]>>(population_count: usize, arch: A) -> Self {
-    assert!(population_count >= 10, "Population must be greater than or equal to 10");
-    assert!(population_count % 2 == 0, "Population must be an even number");
+    assert!(arch.as_ref().len() > 1, "Error - architecture must include an input and output layer");
+    assert!(population_count >= 10, "Error - population must be greater than or equal to 10");
+    assert!(population_count % 2 == 0, "Error - population must be an even number");
 
     let architecture = Arc::new(Vec::from(arch.as_ref()));
     let networks = iter::repeat_with(|| NN::new(architecture.clone()))
@@ -61,24 +62,30 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     }
   }
 
-  // network, fitness, individual
   #[inline]
-  pub fn most_fit(&self) -> (&NN, f64, &P) {
-    let indices_by_fitness = self.indices_by_fitness();
-    let most_fit = indices_by_fitness[0];
-    (&self.networks[most_fit], self.fitnesses[most_fit], &self.population[most_fit])
+  pub fn forward<A: AsRef<[f64]>>(&mut self, input: A, output: Output) -> Vec<f64> {
+    let best = self.most_fit();
+    self.networks[best].forward(input, output)
   }
 
-  // network, fitness, individual
   #[inline]
-  pub fn most_fit_mut(&mut self) -> (&mut NN, f64, &mut P) {
-    let indices_by_fitness = self.indices_by_fitness();
-    let most_fit = indices_by_fitness[0];
-    (&mut self.networks[most_fit], self.fitnesses[most_fit], &mut self.population[most_fit])  }
+  pub fn fitness(&self) -> f64 {
+    self.fitnesses[self.most_fit()]
+  }
 
   #[inline]
   pub fn average_fitness(&self) -> f64 {
     self.fitnesses.par_iter().sum::<f64>() / self.fitnesses.len() as f64
+  }
+
+  #[inline]
+  pub fn weights(&self) -> &Vec<f64> {
+    &self.networks[self.most_fit()].weights
+  }
+
+  #[inline]
+  pub fn biases(&self) -> &Vec<f64> {
+    &self.networks[self.most_fit()].biases
   }
 
   #[inline]
@@ -186,9 +193,9 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
   }
 
   fn mutate(&mut self) {
-    let mutation_rate = 0.35;
-    let weights_mutation_rate = 0.12;
-    let biases_mutation_rate  = 0.09;
+    let mutation_rate = 0.18;
+    let weights_mutation_rate = 0.05;
+    let biases_mutation_rate  = 0.05;
 
     // select random networks in population to mutate
     self.networks
@@ -227,6 +234,11 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     }
 
     indices
+  }
+
+  #[inline]
+  fn most_fit(&self) -> usize {
+    self.indices_by_fitness()[0]
   }
 
   #[inline]
