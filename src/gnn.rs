@@ -126,10 +126,10 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     // room for so many optimizations here...
     self.networks
       .par_chunks_exact_mut(2)
-      .skip(elites_count/2)
+      .skip(elites_count / 2)
       .for_each(|nets| {
         let mut rng = rand::thread_rng();
-        
+
         // select 2 random elites (.0 is weights, .1 is biases)
         let elite_a = elites.choose(&mut rng).expect("Error - elites empty..");
         let elite_b = elites.choose(&mut rng).expect("Error - elites empty..");

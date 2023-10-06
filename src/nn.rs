@@ -4,7 +4,7 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub enum Output {
   Softmax,
-  //Sigmoid,
+  Sigmoid,
   None
 }
 
@@ -110,13 +110,13 @@ impl NN {
 
     match output {
       Output::Softmax => {
-        assert!(self.architecture[self.architecture.len()-1] > 1);
+        assert!(*self.architecture.last().unwrap() > 1);
         self.softmax(current_input)
       },
-      //Output::Sigmoid => {
-      //  assert!(self.architecture[self.architecture.len()-1] == 1);
-      //  self.sigmoid(current_input)
-      //},
+      Output::Sigmoid => {
+        assert!(*self.architecture.last().unwrap() == 1);
+        self.sigmoid(current_input)
+      },
       Output::None => current_input
     }
   }
@@ -133,6 +133,14 @@ impl NN {
     input
       .into_iter()
       .map(|x| (x - max_val).exp() / exp_sum)
+      .collect()
+  }
+
+  fn sigmoid(&self, input: Vec<f64>) -> Vec<f64> {
+    // fast sigmoid approximation of 1/(1+e^(-x))
+    input
+      .into_iter()
+      .map(|x| 0.5 * (x / (1.0 + x.abs()) + 1.0))
       .collect()
   }
 
@@ -183,6 +191,16 @@ mod test_nn {
     let outputs = nn.forward(inputs, Output::Softmax);
     assert!(outputs.iter().sum::<f64>() - 1.0 < f64::EPSILON+0.00001);
     assert_eq!(outputs.len(), 4);
+  }
+
+  #[test]
+  fn test_nn_forward_sigmoid() {
+    let mut nn = NN::new(Arc::new(vec![6, 8, 1]));
+    let inputs = &[0.0; 6];
+
+    let outputs = nn.forward(inputs, Output::Sigmoid);
+    assert!(outputs[0] >= 0.0);
+    assert!(outputs[0] <  1.0);
   }
 
     #[test]
