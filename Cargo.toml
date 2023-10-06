@@ -3,9 +3,8 @@ name = "gnn"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "main"
-path = "src/bin/main.rs"
+[[example]]
+name = "aplusb"
 
 [lib]
 name = "gnn"

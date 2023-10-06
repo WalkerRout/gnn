@@ -227,7 +227,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     unsafe {
       indices.sort_by(|&a, &b| { 
         self.fitnesses.get_unchecked(b)
-          .partial_cmp(&self.fitnesses.get_unchecked(a)).unwrap() 
+          .partial_cmp(self.fitnesses.get_unchecked(a)).unwrap() 
       });
     }
 
@@ -336,6 +336,12 @@ impl GNNBuilder {
 
   pub fn build<P: Optimizer + Send + Sync>(self) -> GNN<P> {
     GNN::new(self.population, self.architecture.expect("Error - must set architecture for GNN"))
+  }
+}
+
+impl Default for GNNBuilder {
+  fn default() -> Self {
+    Self::new()
   }
 }
 

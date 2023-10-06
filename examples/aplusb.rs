@@ -20,7 +20,7 @@ impl Optimizer for APlusB {
       let b = rng.gen_range(0.0..100.0);
       // A plus B!
       let expected = a + b;
-      let pred = nn.forward(&[a, b], Output::None);
+      let pred = nn.forward([a, b], Output::None);
       fitness += 1.0 / f64::abs(pred[0] - expected);
     }
 
@@ -31,19 +31,19 @@ impl Optimizer for APlusB {
 fn main() {
   let mut gnn = GNNBuilder::new()
     .population(1500)
-    .architecture(&[2, 4, 4, 1])
+    .architecture([2, 4, 4, 1])
     .build::<APlusB>();
 
   gnn.evolve_complete(2000);
 
-  let a = 46.1;
-  let b = 12.8;
+  let a = 1.15;
+  let b = 1.15;
   let avg = gnn.average_fitness();
   let (most_fit, fitness, _) = gnn.most_fit_mut();
 
   println!("final avg fitness: {}", avg);
   println!("most fit guess of fitness {}: {a} + {b} = {:?}",
-    fitness, most_fit.forward(&[a, b], Output::None));
+    fitness, most_fit.forward([a, b], Output::None));
 
   //println!("Most fit weights: {:?}", most_fit.weights);
   //println!("Most fit biases: {:?}", most_fit.biases);
