@@ -15,6 +15,7 @@ pub trait Optimizer: Default {
 }
 
 pub struct GNN<P: Optimizer> {
+  #[allow(dead_code)] // architecture unused; simple reference to architecture of population
   architecture: Arc<Vec<usize>>, // population architecture
   /// Tandem vectors
   networks: Vec<NN>,

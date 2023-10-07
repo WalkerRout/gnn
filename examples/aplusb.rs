@@ -34,7 +34,7 @@ fn main() {
     .architecture([2, 2, 1])
     .build::<APlusB>();
 
-  gnn.evolve_complete(3000);
+  gnn.evolve_complete(2000);
 
   let a = 22.0;
   let b = 23.0;
