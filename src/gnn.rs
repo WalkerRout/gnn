@@ -75,7 +75,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
 
   #[inline]
   pub fn average_fitness(&self) -> f64 {
-    self.fitnesses.par_iter().sum::<f64>() / self.fitnesses.len() as f64
+    self.fitnesses.iter().sum::<f64>() / self.fitnesses.len() as f64
   }
 
   #[inline]
