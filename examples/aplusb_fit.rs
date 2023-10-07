@@ -1,5 +1,5 @@
 
-use ::gnn::*;
+use gnn::prelude::*;
 
 use std::sync::Arc;
 

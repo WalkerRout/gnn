@@ -1,6 +1,9 @@
 
 pub mod nn;
-pub use crate::nn::{NN, Output};
-
 pub mod gnn;
-pub use crate::gnn::{GNN, GNNBuilder, Optimizer};
+
+// visible in prelude::*;
+pub mod prelude {
+  pub use crate::nn::{NN, Output};
+  pub use crate::gnn::{GNN, GNNBuilder, Optimizer};
+}

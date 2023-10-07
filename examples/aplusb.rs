@@ -1,7 +1,7 @@
 
 use rand::prelude::*;
 
-use ::gnn::*;
+use gnn::prelude::*;
 
 #[derive(Debug, Default, Clone)]
 struct APlusB;
