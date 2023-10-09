@@ -143,34 +143,22 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
         let elite_a = elites.choose(&mut rng).expect("Error - elites empty..");
         let elite_b = elites.choose(&mut rng).expect("Error - elites empty..");
 
-        // |A|BB|AA|
         let mut nn_a_weights = Vec::with_capacity(weights_count);
-        let mut nn_a_biases  = Vec::with_capacity(biases_count);
-        // |B|AA|BB|
         let mut nn_b_weights = Vec::with_capacity(weights_count);
+        let mut nn_a_biases  = Vec::with_capacity(biases_count);
         let mut nn_b_biases  = Vec::with_capacity(biases_count);
 
-        // nn_a_weights
+        // weights
         let lower = rng.gen_range(0..weights_count / 2);
         let upper = rng.gen_range(weights_count / 2..weights_count);
-        nn_a_weights.extend_from_slice(&elite_a.0[0..lower]);
-        nn_a_weights.extend_from_slice(&elite_b.0[lower..upper]);
-        nn_a_weights.extend_from_slice(&elite_a.0[upper..weights_count]);
-        // nn_b_weights
-        nn_b_weights.extend_from_slice(&elite_b.0[0..lower]);
-        nn_b_weights.extend_from_slice(&elite_a.0[lower..upper]);
-        nn_b_weights.extend_from_slice(&elite_b.0[upper..weights_count]);
+        Self::cross(&mut nn_a_weights, &elite_a.0, &elite_b.0, lower, upper, weights_count);
+        Self::cross(&mut nn_b_weights, &elite_b.0, &elite_a.0, lower, upper, weights_count);
 
-        // nn_a_biases
+        // biases
         let lower = rng.gen_range(0..biases_count / 2);
         let upper = rng.gen_range(biases_count / 2..biases_count);
-        nn_a_biases.extend_from_slice(&elite_a.1[0..lower]);
-        nn_a_biases.extend_from_slice(&elite_b.1[lower..upper]);
-        nn_a_biases.extend_from_slice(&elite_a.1[upper..biases_count]);
-        // nn_b_biases
-        nn_b_biases.extend_from_slice(&elite_b.1[0..lower]);
-        nn_b_biases.extend_from_slice(&elite_a.1[lower..upper]);
-        nn_b_biases.extend_from_slice(&elite_b.1[upper..biases_count]);
+        Self::cross(&mut nn_a_biases, &elite_a.1, &elite_b.1, lower, upper, biases_count);
+        Self::cross(&mut nn_b_biases, &elite_b.1, &elite_a.1, lower, upper, biases_count);
 
         let nn_genes = [(nn_a_weights, nn_a_biases), (nn_b_weights, nn_b_biases)];
         
@@ -192,6 +180,14 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
         nn.weights = weights_gene;
         nn.biases  = biases_gene;
       });
+  }
+
+  #[inline]
+  fn cross(dest: &mut Vec<f64>, target_a: &[f64], target_b: &[f64], lower: usize, upper: usize, max: usize) {
+    // A|BB|AA
+    dest.extend_from_slice(&target_a[0..lower]);
+    dest.extend_from_slice(&target_b[lower..upper]);
+    dest.extend_from_slice(&target_a[upper..max]);
   }
 
   fn mutate(&mut self) {
