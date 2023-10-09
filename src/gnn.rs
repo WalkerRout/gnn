@@ -4,6 +4,7 @@ use rayon::prelude::*;
 
 use crate::nn::{NN, Output};
 
+use std::mem;
 use std::iter;
 use std::sync::Arc;
 use std::default::Default;
@@ -124,10 +125,10 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
 
     // eventually add some random crap networks for variability
     let elites: Vec<(Vec<f64>, Vec<f64>)> = elites
-      .into_par_iter()
+      .into_iter()
       .map(|i| (
-        self.networks[i].weights.clone(),
-        self.networks[i].biases.clone()
+        mem::take(&mut self.networks[i].weights),
+        mem::take(&mut self.networks[i].biases)
       ))
       .collect();
 
