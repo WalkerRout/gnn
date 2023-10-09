@@ -182,14 +182,6 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
       });
   }
 
-  #[inline]
-  fn cross(dest: &mut Vec<f64>, target_a: &[f64], target_b: &[f64], lower: usize, upper: usize, max: usize) {
-    // A|BB|AA
-    dest.extend_from_slice(&target_a[0..lower]);
-    dest.extend_from_slice(&target_b[lower..upper]);
-    dest.extend_from_slice(&target_a[upper..max]);
-  }
-
   fn mutate(&mut self) {
     let mutation_rate = 0.18;
     let weights_mutation_rate = 0.05;
@@ -234,6 +226,14 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
     indices
   }
 
+  #[inline]
+  fn cross(dest: &mut Vec<f64>, target_a: &[f64], target_b: &[f64], lower: usize, upper: usize, max: usize) {
+    // A|BB|AA
+    dest.extend_from_slice(&target_a[0..lower]);
+    dest.extend_from_slice(&target_b[lower..upper]);
+    dest.extend_from_slice(&target_a[upper..max]);
+  }
+  
   #[inline]
   fn most_fit(&self) -> usize {
     self.indices_by_fitness()[0]
