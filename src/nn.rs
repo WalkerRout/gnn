@@ -79,7 +79,7 @@ impl NN {
     nn
   }
 
-  pub fn forward<A: AsRef<[f64]>>(&mut self, input: A, output: Output) -> Vec<f64> {
+  pub fn forward<A: AsRef<[f64]>>(&self, input: A, output: Output) -> Vec<f64> {
     let mut current_input = input.as_ref().to_owned();
 
     for i in 0..self.architecture.len() - 1 {  // subtract 1 to exclude input layer

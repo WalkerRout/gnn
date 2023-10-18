@@ -65,7 +65,7 @@ impl<P: Optimizer + Send + Sync> GNN<P> {
   }
 
   #[inline]
-  pub fn forward<A: AsRef<[f64]>>(&mut self, input: A, output: Output) -> Vec<f64> {
+  pub fn forward<A: AsRef<[f64]>>(&self, input: A, output: Output) -> Vec<f64> {
     let best = self.most_fit();
     self.networks[best].forward(input, output)
   }
