@@ -1,2 +1,2 @@
 # gnn
-Genetic neural network library in Rust
+A genetic neural network library written in Rust. Depends on crates Rayon and Rand...
